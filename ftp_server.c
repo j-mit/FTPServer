@@ -5,6 +5,7 @@
 #include <netinet/in.h>
 #include <sys/resource.h>
 #include <strings.h>
+#include <string.h>
 
 //#define portno 1234
 #define MAXSIZE 6000
@@ -26,7 +27,7 @@ void main(int argc,char *argv[])
    char *filename;
    int fchar;
    long j=0;
-   char data[MAXSIZE];
+   //char data[MAXSIZE];
 
 
   /*************************Create a Socket****************************/
@@ -75,33 +76,7 @@ void main(int argc,char *argv[])
     }*/
     /*readn(newsd,(char *)&mode,sizeof(mode));
     
-    printf("i am here rerer %d\n",mode);
-
-   /*switch(mode)
-   {
-     case 10:
-       mode=20;
-     break;
-
-     case 20:    
-       ack=mode;
-       writen(newsd,(char *)&ack,sizeof(ack));
-       fchar = readn(newsd,filename,100);
-       ack = fchar;
-       writen(newsd,(char *)&ack,sizeof(ack));
-       fchar = readn(newsd,data,MAXSIZE);
-       ack = fchar;
-       writen(newsd,(char *)&ack,sizeof(ack));
-
-       while(j<=fchar)
-       { 
-         printf("0x%x ",data[j]);
-         j++;
-       } 
-
-     break;
-    }*/
-
+    printf("i am here rerer %d\n",mode);*/
 
     selMode(newsd);
   } 
@@ -112,12 +87,13 @@ void main(int argc,char *argv[])
 
 void selMode(int sd)
 {
-   int ack=-1,rem=0,th=1000;
-   char filename[100];
-   int fchar;
+   int ack=-1,rem=0,th=1000,fchar=0;
+   char filename[100],newFile[100] = "/home/jaymit/ping/";
+  // int fchar;
    long j=0;
    char data[1000];
    FILE *op;
+   FILE *ip;
 
    printf("i am here 1\n");
    readn(sd,(char *)&mode,sizeof(mode));
@@ -131,59 +107,80 @@ void selMode(int sd)
 
      case 20:    
        ack=mode;
+       //write ack
        writen(sd,(char *)&ack,sizeof(ack));
-
+	// recieve and generate ack for filename
        fchar = readn(sd,filename,100);
        printf("filename=%s\n",filename);
        ack = fchar;
        writen(sd,(char *)&ack,sizeof(ack));
-
+	
+	// read size and send ack
        readn(sd,(char *)&j,sizeof(int));
        writen(sd,(char *)&ack,sizeof(ack));
         
+        // open and write file
        rem=j;
-       op=fopen("something.jpg","wb");
+       strcat(newFile,filename);
+       op=fopen(newFile,"wb");
        while(rem>0)
        {
          if(rem>=1000)
-           fchar = read(sd,data,1000);
+         {
+           fchar = read(sd,&data[0],1000);
+           writen(sd,(char *)&ack,sizeof(int));
+         }
          else
-           fchar = read(sd,data,rem); 
-         printf("fchar=%d rem=%d\n ",fchar,rem);
+         {
+           fchar = read(sd,&data[0],rem);
+           writen(sd,(char *)&ack,sizeof(int)); 
+         }
+         //printf("fchar=%d rem=%d\n ",fchar,rem);
          
          j=fchar;
          while(fchar>0)
          { 
            fputc(data[j-fchar],op);
-           printf("0x%x ",data[j-fchar]);
+           //printf("0x%x ",data[j-fchar]);
            data[j-fchar]=0;
            fchar--;
          }
          rem-=1000;
-         /*if(rem>=1000)  
-           data+=1000;
-         else
-           data+=rem;*/
        }
          
-       printf("char 2=%i\n",fchar);
+       //printf("char 2=%i\n",fchar);
        ack = fchar;
-       printf("char 3=%i\n",ack);
+       //printf("char 3=%i\n",ack);
+       printf("File recvd successfully\n");
        writen(sd,(char *)&ack,sizeof(ack));
 
-       /*op=fopen("something.jpg","wb");
-       /*while(j>0)
-       { 
-         //printf("0x%x ",data[j]);
-         fputc(data[fchar-j],op);
-         j--;
-       }*/
        fclose(op);
        printf("here...\n");
 
      break;
 
      case 30:
+       ack=mode;
+       //write ack
+       writen(sd,(char *)&ack,sizeof(ack));
+       // recieve and generate ack for filename
+       fchar = readn(sd,filename,100);
+       printf("filename=%s\n",filename);
+       ack = fchar;
+       writen(sd,(char *)&ack,sizeof(ack));
+       readFileSize(&j,filename);
+
+       printf("j=%d\n",j); 
+       //write size to server and read ack
+       fchar = writen(sd,(char *)&j,sizeof(int));
+       ack = fchar;//<---
+       writen(sd,(char *)&ack,sizeof(ack));
+ 
+       readFileData(data,filename,j,sd);
+       printf("file written successfully\n");
+       
+     
+     
      break;
 
      case 40:
@@ -191,6 +188,84 @@ void selMode(int sd)
      
    }
 }
+
+void readFileSize(int *j,char *filename)
+{
+   FILE *ip;
+   unsigned int tempData=0;   
+
+   ip = fopen(filename,"rb");
+   if(ip<0)
+   {
+     printf("file open failed\n");
+     exit(0);
+   }
+   while(1)
+   { 
+     tempData = fgetc(ip);     
+     if(tempData==EOF)
+      break;
+     (*j)+=1;
+   }  
+   fseek(ip,0,SEEK_SET);  
+}
+
+void readFileData(char data[],char *filename,int j,int sd)
+{  
+   FILE *ip;
+   int k=0,ack=-1;
+   unsigned int tempData=0; 
+   int rem=0;  
+
+   ip = fopen(filename,"rb");
+   if(ip<0)
+   {
+     printf("file open failed\n");
+     exit(0);
+   }
+   while( ((tempData = fgetc(ip)) != EOF) && j>0)
+   {
+     data[rem++] = (char)tempData;
+     //printf("0x%x,",data[rem-1]);
+ 
+     if(j<1000)
+     {
+      j--;
+      k++;
+      if(j<=0)
+        lastBlock(data,j,k,sd);      
+     }   
+     else if(rem>=1000)
+     {
+      rem=0;
+      dataBlocks(data,&j,sd);     
+     }              
+   }
+}
+
+void dataBlocks(char data[],int *j,int sd)
+{
+   int fchar=0,ack=-1;
+   fchar = writen(sd,(char *)data,1000);
+   readn(sd,(char *)&ack,sizeof(int));
+   printf("fchar = %d\n",fchar);
+   bzero(data,1000);
+   *j-=1000;  
+}
+
+void lastBlock(char data[],int j,int k,int sd)
+{
+  int fchar=0,i=0,ack=-1;
+
+  /*for(i=0;i<k;i++)
+    printf("0x%x,",data[i]);*/
+  printf("\n");
+  fchar = writen(sd,(char *)&data[0],k);
+  readn(sd,(char *)&ack,sizeof(int));
+  printf("fchar = %d ",fchar);
+}
+
+	
 
 
 int readn(int sd,char *ptr,int size)
