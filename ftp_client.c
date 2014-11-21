@@ -65,7 +65,8 @@ void selMode(int sd)
    char filename[100],dFile[100] = "/home/jaymit/Down/";
    char directory[100];
    int count;
-   //char *file, *dirc;
+   char *file;
+   char dirc[100];
    FILE *ip;
    FILE *op;
    int j=0;
@@ -111,9 +112,10 @@ void selMode(int sd)
        chkAck(&ack,"Read Mode");
        getFilename(filename);
        //dirc = strdup(filename);
-       //file = basename(dirc);     
-       writen(sd,filename,sizeof(filename));
-       printf("file = %s\n",filename);
+       file = basename(filename);
+       strcpy(dirc, file);    
+       writen(sd,(char *)&dirc,sizeof(dirc));
+       printf("file = %s\n",file);
 // read ack and read file size
        readn(sd,(char *)&ack,sizeof(int));
        chkAck(&ack,"Send Filename");

@@ -187,7 +187,7 @@ void selMode(int sd)
        //write ack
        writen(sd,(char *)&ack,sizeof(ack));
        // recieve and generate ack for filename
-       fchar = readn(sd,filename,100);
+       fchar = readn(sd,(char *)&filename,sizeof(char));
        printf("filename=%s\n",filename);
        ack = fchar;
        writen(sd,(char *)&ack,sizeof(ack));
