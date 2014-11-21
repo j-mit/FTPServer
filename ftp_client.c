@@ -73,25 +73,33 @@ void selMode(int sd)
    int i=0;
    char uname[100];
    char password[100];
+   char valid[100];
    
-   printf("i am here 1\n");
+   //printf("i am here 1\n");
 
    while(1)
    {
    switch(mode)
    {
      case 10:
-       printf("i am here again\n");
+       //printf("i am here again\n");
        writen(sd,(char *)&mode,sizeof(mode));
        readn(sd,(char *)&ack,sizeof(ack));
        printf("Please Enter Username:");
        scanf("%s", uname);
+       writen(sd,(char *)&uname,sizeof(uname));
        printf("Please Enter Password:");
        scanf("%s", password);
-       
-
+       writen(sd,(char *)&password,sizeof(password));
+       read(sd, (char *)&valid, sizeof(valid));
+       printf("\n%s\n", valid);
+       if(strcmp(valid , "Fail!") == 0){
+       printf("Incorrect username or password. Please Try Again\n");
+       selMode(sd);
+       }else{
       //SSH Validation
       mode = selFromMenu();//call this function at the end
+      }
      break;
 
      case 20:
@@ -125,7 +133,7 @@ void selMode(int sd)
        readn(sd,(char *)&ack,sizeof(int));
        chkAck(&ack,"file upload");
 
-      // mode = selFromMenu();
+      mode = selFromMenu();
      break;
 
      case 30:
@@ -204,11 +212,10 @@ void selMode(int sd)
          count--;
          l++;
        }
-     // mode = selFromMenu();//call this function at the end
+      mode = selFromMenu();//call this function at the end
      break;
      
    }
-   mode = selFromMenu();
   }
 }
 

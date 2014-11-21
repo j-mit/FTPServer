@@ -79,8 +79,8 @@ void main(int argc,char *argv[])
     /*readn(newsd,(char *)&mode,sizeof(mode));
     
     printf("i am here rerer %d\n",mode);*/
-
-    selMode(newsd);
+    while(1){
+    selMode(newsd);}
   } 
 
   /******************Close the Socket***********************************/
@@ -97,6 +97,10 @@ void selMode(int sd)
    char name[256][256];
    FILE *op;
    FILE *ip;
+   char uname[100];
+   char password[100];
+   char valid1[100] = "jaymit";
+   char valid2[100] = "123456";
    DIR *dp;
    struct dirent *ep;
 
@@ -106,10 +110,21 @@ void selMode(int sd)
 
    switch(mode)
    {
-     case 10:
+     case 10:	
        ack=mode;
        //write ack
        writen(sd,(char *)&ack,sizeof(ack));
+       read(sd,(char *)uname,sizeof(uname));
+       read(sd,(char *)password,sizeof(password));
+       printf("%s\n", uname);
+       printf("%s\n", password);
+       if ((strcmp (uname,valid1) == 0) && (strcmp (password,valid2) == 0))
+             {
+                write(sd, "Kudos!", sizeof("Kudos!"));
+             }
+          else{
+          write(sd, "Fail!", sizeof("Fail!"));
+        }
        
      break;
 
