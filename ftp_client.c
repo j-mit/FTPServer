@@ -5,6 +5,7 @@
 #include <netdb.h>
 #include <strings.h>
 #include <string.h>
+#include <libgen.h>
 
 //#define MAXSIZE 6000
 
@@ -61,12 +62,17 @@ void main(int argc,char *argv[])
 void selMode(int sd)
 {
    int ack=-1,fchar=0,rem=0,th=1000;
-   char filename[100],newFile[100] = "renew_";
+   char filename[100],dFile[100] = "/home/jaymit/Down/";
+   char directory[100];
+   int count;
+   //char *file, *dirc;
    FILE *ip;
    FILE *op;
    int j=0;
    char data[1000];
    int i=0;
+   char uname[100];
+   char password[100];
    
    printf("i am here 1\n");
 
@@ -75,6 +81,15 @@ void selMode(int sd)
    switch(mode)
    {
      case 10:
+       printf("i am here again\n");
+       writen(sd,(char *)&mode,sizeof(mode));
+       readn(sd,(char *)&ack,sizeof(ack));
+       printf("Please Enter Username:");
+       scanf("%s", uname);
+       printf("Please Enter Password:");
+       scanf("%s", password);
+       
+
       //SSH Validation
       mode = selFromMenu();//call this function at the end
      break;
@@ -86,8 +101,10 @@ void selMode(int sd)
        readn(sd,(char *)&ack,sizeof(ack));
 //ack and send file name
        chkAck(&ack,"Read Mode");
-       getFilename(filename);       
-       writen(sd,(char *)filename,sizeof(filename));
+       getFilename(filename);
+       //dirc = strdup(filename);
+       //file = basename(dirc);     
+       writen(sd,filename,sizeof(filename));
        printf("file = %s\n",filename);
 // read ack and read file size
        readn(sd,(char *)&ack,sizeof(int));
@@ -95,7 +112,7 @@ void selMode(int sd)
        readFileSize(&j,filename);
 
        printf("j=%d\n",j); 
-       //write size to server and read ack
+//write size to server and read ack
        writen(sd,(char *)&j,sizeof(int));
        readn(sd,(char *)&ack,sizeof(int));
        chkAck(&ack,"Send FileSize");
@@ -108,11 +125,11 @@ void selMode(int sd)
        readn(sd,(char *)&ack,sizeof(int));
        chkAck(&ack,"file upload");
 
-       mode = selFromMenu();
+      // mode = selFromMenu();
      break;
 
      case 30:
-       printf("i am here 2\n");
+   //Download File to the Client
        writen(sd,(char *)&mode,sizeof(mode));
        readn(sd,(char *)&ack,sizeof(ack));
 
@@ -124,15 +141,15 @@ void selMode(int sd)
        readn(sd,(char *)&ack,sizeof(int));
        chkAck(&ack,"Send Filename");
        
-       readn(sd,(char *)&j,sizeof(int));//<-----
+       readn(sd,(char *)&j,sizeof(int));
        readn(sd,(char *)&ack,sizeof(int));
-       chkAck(&ack,"Send FileSize");
-       
+       chkAck(&ack,"Get FileSize");
+     
        
        // open and write file
        rem=j;
-       strcat(newFile,filename);
-       op=fopen(newFile,"wb");
+       strcat(dFile,filename);
+       op=fopen(dFile,"wb");
        while(rem>0)
        {
          if(rem>=1000)
@@ -167,15 +184,31 @@ void selMode(int sd)
        fclose(op);
        printf("here...\n");
       //Download file from the server
-       mode = selFromMenu();//call this function at the end
+      // mode = selFromMenu();//call this function at the end
      break;
 
      case 40:
+      
       //View the server directory
-      mode = selFromMenu();//call this function at the end
+       writen(sd,(char *)&mode,sizeof(mode));
+       readn(sd,(char *)&ack,sizeof(ack));
+
+       chkAck(&ack,"Check Mode");
+       readn(sd, (char *)&count, sizeof(int));
+       printf("Count : %d files\n", count);
+       int l=1;
+       while(count > 0)
+       {
+         readn(sd,(char *)directory,sizeof(directory));
+         printf("\t%d. %s\n", l, directory);
+         count--;
+         l++;
+       }
+     // mode = selFromMenu();//call this function at the end
      break;
      
    }
+   mode = selFromMenu();
   }
 }
 
@@ -183,10 +216,10 @@ int selFromMenu()
 {
   int input=0; 
  
-  printf("\n-------How do you wish to use the FTP server--------\n\n");
-  printf("   ***Press 1 to Upload a File to the server****\n\n");
-  printf("  ****Press 2 to Download a File from the server***\n\n");
-  printf("   ***Press 3 to View the server directory****\n\n");
+  printf("\n\t-------How do you wish to use the FTP server--------\n\n");
+  printf("\tPress 1 to Upload a File to the server\n\n");
+  printf("\tPress 2 to Download a File from the server\n\n");
+  printf("\tPress 3 to View the server directory\n\n");
   
   printf("Enter your option here(by default view): ");
   scanf("%d",&input);
@@ -201,11 +234,14 @@ int selFromMenu()
     mode = 30;
     printf("File Download mode selected\n");
   }
-  else 
+  else if(input == 3)
   {
     mode = 40;
     printf("View Directory Mode mode selected\n");
   }
+  else
+  {printf("Wrong input\n");
+   selFromMenu();}
 
   return mode;
 }
@@ -225,7 +261,8 @@ void chkAck(int *ack,char *name)
 }
 
 void getFilename(char *filename)
-{
+{ 
+  
   printf("Enter the name of file to upload: ");
   scanf("%s",filename);
 }

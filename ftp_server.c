@@ -6,6 +6,7 @@
 #include <sys/resource.h>
 #include <strings.h>
 #include <string.h>
+#include <dirent.h>
 
 //#define portno 1234
 #define MAXSIZE 6000
@@ -15,6 +16,7 @@ int writen(int,char *,int);
 void selMode(int);
 
 int mode = 10;
+
 
 void main(int argc,char *argv[])
 {
@@ -87,13 +89,16 @@ void main(int argc,char *argv[])
 
 void selMode(int sd)
 {
-   int ack=-1,rem=0,th=1000,fchar=0;
+   int ack=-1,rem=0,th=1000,fchar=0,count = 0;
    char filename[100],newFile[100] = "/home/jaymit/ping/";
-  // int fchar;
+   char list[100];
    long j=0;
    char data[1000];
+   char name[256][256];
    FILE *op;
    FILE *ip;
+   DIR *dp;
+   struct dirent *ep;
 
    printf("i am here 1\n");
    readn(sd,(char *)&mode,sizeof(mode));
@@ -102,7 +107,10 @@ void selMode(int sd)
    switch(mode)
    {
      case 10:
-       mode=20;
+       ack=mode;
+       //write ack
+       writen(sd,(char *)&ack,sizeof(ack));
+       
      break;
 
      case 20:    
@@ -173,18 +181,42 @@ void selMode(int sd)
        printf("j=%d\n",j); 
        //write size to server and read ack
        fchar = writen(sd,(char *)&j,sizeof(int));
-       ack = fchar;//<---
+       ack = fchar;
        writen(sd,(char *)&ack,sizeof(ack));
- 
+       //read file data
        readFileData(data,filename,j,sd);
-       printf("file written successfully\n");
-       
-     
-     
+       printf("file written successfully\n");   
      break;
 
      case 40:
-     break;
+       ack=mode;
+       //write ack
+       writen(sd,(char *)&ack,sizeof(ack));
+       int index = 0;
+       dp = opendir("/home/jaymit/ping/");
+       if (dp)
+       {
+         while ((ep = readdir(dp)) != NULL)
+         {
+          //printf("%s\n", ep->d_name);
+          strcpy(name[count],ep->d_name);
+          count++;
+         }
+
+        closedir(dp);
+        }
+	writen( sd, (char *)&count, sizeof(int));
+	printf("%d\n",count);
+	
+        while( count > 0 )
+        {
+          strcpy(list,name[index]);
+          write(sd, (char *)list, sizeof(list));
+          index++;
+          count--;
+          //sleep(1);
+        }  
+        break;
      
    }
 }
