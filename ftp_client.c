@@ -51,7 +51,7 @@ void main(int argc,char *argv[])
   }
   bzero(buffer,256);
  
-  printf("i am here fghgh %d\n",mode);
+  //printf("i am here fghgh %d\n",mode);
 
   selMode(sock);
 
