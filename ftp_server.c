@@ -16,7 +16,7 @@ int writen(int,char *,int);
 void selMode(int);
 
 int mode = 10;
-
+//char newFile[100] = "/home/jaymit/ping/";
 
 void main(int argc,char *argv[])
 {
@@ -71,16 +71,19 @@ void main(int argc,char *argv[])
       exit(1);
     }
    
-    /*pid = fork();
+    pid = fork();
     if(pid == 0)
     {
-      
-    }*/
+      while(1){
+      selMode(newsd);
+      }
+      close(newsd);
+    }
     /*readn(newsd,(char *)&mode,sizeof(mode));
     
     printf("i am here rerer %d\n",mode);*/
-    while(1){
-    selMode(newsd);}
+    //while(1){
+    //}
   } 
 
   /******************Close the Socket***********************************/
@@ -90,7 +93,7 @@ void main(int argc,char *argv[])
 void selMode(int sd)
 {
    int ack=-1,rem=0,th=1000,fchar=0,count = 0;
-   char filename[100],newFile[100] = "/home/jaymit/ping/";
+   char filename[100], newFile[100] = "/home/jaymit/ping/";
    char list[100];
    long j=0;
    char data[1000];
@@ -104,9 +107,9 @@ void selMode(int sd)
    DIR *dp;
    struct dirent *ep;
 
-   printf("i am here 1\n");
+   //printf("i am here 1\n");
    readn(sd,(char *)&mode,sizeof(mode));
-   printf("i am here 2\n");
+   printf("Mode: %d\n", mode);
 
    switch(mode)
    {
@@ -187,7 +190,7 @@ void selMode(int sd)
        //write ack
        writen(sd,(char *)&ack,sizeof(ack));
        // recieve and generate ack for filename
-       fchar = readn(sd,(char *)&filename,sizeof(char));
+       fchar = readn(sd,filename,100);
        printf("filename=%s\n",filename);
        ack = fchar;
        writen(sd,(char *)&ack,sizeof(ack));
@@ -239,9 +242,13 @@ void selMode(int sd)
 void readFileSize(int *j,char *filename)
 {
    FILE *ip;
+   
    unsigned int tempData=0;   
-
-   ip = fopen(filename,"rb");
+   char newFile[100] = "/home/jaymit/ping/";
+   strcat(newFile,filename);
+   
+   ip = fopen(newFile,"rb");
+   
    if(ip<0)
    {
      printf("file open failed\n");
@@ -263,8 +270,10 @@ void readFileData(char data[],char *filename,int j,int sd)
    int k=0,ack=-1;
    unsigned int tempData=0; 
    int rem=0;  
-
-   ip = fopen(filename,"rb");
+   char newFile[100] = "/home/jaymit/ping/";
+   strcat(newFile,filename);
+   
+   ip = fopen(newFile,"rb");
    if(ip<0)
    {
      printf("file open failed\n");

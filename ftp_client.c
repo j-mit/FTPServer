@@ -37,11 +37,11 @@ void main(int argc,char *argv[])
     exit(1);
   }
 
-  host = gethostbyname(argv[1]);
+  //host = gethostbyname(argv[1]);
   
   server_addr.sin_family = AF_INET;     
   server_addr.sin_port = htons(atoi(argv[2]));   
-  server_addr.sin_addr = *((struct in_addr *)host->h_addr);
+  server_addr.sin_addr.s_addr = inet_addr(argv[1]);//*((struct in_addr *)host->h_addr);
   //bcopy((char *)host->h_addr,(char *)&server_addr.sin_addr.s_addr,host->h_length);
 
   if(connect(sock,(struct sockaddr *)(&server_addr),sizeof(server_addr))<0)
@@ -105,7 +105,7 @@ void selMode(int sd)
 
      case 20:
 //Upload File to the Server
-       printf("i am here 2\n");
+      // printf("i am here 2\n");
        writen(sd,(char *)&mode,sizeof(mode));
        readn(sd,(char *)&ack,sizeof(ack));
 //ack and send file name
@@ -194,7 +194,7 @@ void selMode(int sd)
        fclose(op);
        printf("here...\n");
       //Download file from the server
-      // mode = selFromMenu();//call this function at the end
+       mode = selFromMenu();//call this function at the end
      break;
 
      case 40:
@@ -229,6 +229,7 @@ int selFromMenu()
   printf("\tPress 1 to Upload a File to the server\n\n");
   printf("\tPress 2 to Download a File from the server\n\n");
   printf("\tPress 3 to View the server directory\n\n");
+  printf("\tPress 4 to EXIT.\n\n");
   
   printf("Enter your option here(by default view): ");
   scanf("%d",&input);
@@ -248,6 +249,8 @@ int selFromMenu()
     mode = 40;
     printf("View Directory Mode mode selected\n");
   }
+  else if(input == 4)
+  {exit(0);}
   else
   {printf("Wrong input\n");
    selFromMenu();}
@@ -270,9 +273,11 @@ void chkAck(int *ack,char *name)
 }
 
 void getFilename(char *filename)
-{ 
-  
-  printf("Enter the name of file to upload: ");
+{
+  //printf(" MOd e %d\n", mode);
+  if (mode == 20){
+  printf("Enter the name of file to upload: ");}
+  else{printf("Enter the name of file to Download: ");}
   scanf("%s",filename);
 }
 
