@@ -102,8 +102,8 @@ void selMode(int sd)
    FILE *ip;
    char uname[100];
    char password[100];
-   char valid1[100] = "jaymit";
-   char valid2[100] = "123456";
+   char valid1[5][100] = {"jaymit", "akshar", "shrads", "prachi", "navdeep"};
+   char valid2[5][100] = {"123456", "234567", "345678", "456789", "567890"};
    DIR *dp;
    struct dirent *ep;
 
@@ -121,14 +121,17 @@ void selMode(int sd)
        read(sd,(char *)password,sizeof(password));
        printf("%s\n", uname);
        printf("%s\n", password);
-       if ((strcmp (uname,valid1) == 0) && (strcmp (password,valid2) == 0))
+       int a;
+       for (a = 0; a < 5; a++)
+       	 if (strcmp (uname,valid1[a]) == 0){
+       	   if (strcmp (password,valid2[a]) == 0)
              {
                 write(sd, "Kudos!", sizeof("Kudos!"));
              }
-          else{
-          write(sd, "Fail!", sizeof("Fail!"));
-        }
-       
+           else{
+             write(sd, "Fail!", sizeof("Fail!"));
+        	}
+      } 
      break;
 
      case 20:    

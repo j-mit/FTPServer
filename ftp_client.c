@@ -72,9 +72,11 @@ void selMode(int sd)
    int j=0;
    char data[1000];
    int i=0;
+   boolean ve = false; 
    char uname[100];
    char password[100];
    char valid[100];
+   char extensions [10][100] = {".jpg", ".jpeg", ".gif", ".png", ".mp3", ".mp4", ".avi", ".acc", ".mpeg", ".wmv", ".wma"};
    
    //printf("i am here 1\n");
 
@@ -93,12 +95,13 @@ void selMode(int sd)
        scanf("%s", password);
        writen(sd,(char *)&password,sizeof(password));
        read(sd, (char *)&valid, sizeof(valid));
-       printf("\n%s\n", valid);
+       //printf("\n%s\n", valid);
        if(strcmp(valid , "Fail!") == 0){
-       printf("Incorrect username or password. Please Try Again\n");
+       printf("Incorrect username or password. Please Try Again\n\n");
        selMode(sd);
        }else{
       //SSH Validation
+      printf("Welcome to your Media Server Service %s \n\n", uname);
       mode = selFromMenu();//call this function at the end
       }
      break;
@@ -113,28 +116,44 @@ void selMode(int sd)
        getFilename(filename);
        //dirc = strdup(filename);
        file = basename(filename);
-       strcpy(dirc, file);    
-       writen(sd,(char *)&dirc,sizeof(dirc));
-       printf("file = %s\n",file);
+       strcpy(dirc, file);
+       // check extension
+       
+       char *e = strrchr (dirc, '.');
+       int a;
+       for(a = 0; a < 10; a++){
+         if (strcmp (e, extensions[a]) == 0)
+           {
+             printf("\nValid Entery\n");
+             writen(sd,(char *)&dirc,sizeof(dirc));
+       	     printf("file = %s\n",file);
 // read ack and read file size
-       readn(sd,(char *)&ack,sizeof(int));
-       chkAck(&ack,"Send Filename");
-       readFileSize(&j,filename);
+             readn(sd,(char *)&ack,sizeof(int));
+             chkAck(&ack,"Send Filename");
+             readFileSize(&j,filename);
 
-       printf("j=%d\n",j); 
+             printf("j=%d\n",j); 
 //write size to server and read ack
-       writen(sd,(char *)&j,sizeof(int));
-       readn(sd,(char *)&ack,sizeof(int));
-       chkAck(&ack,"Send FileSize");
+             writen(sd,(char *)&j,sizeof(int));
+             readn(sd,(char *)&ack,sizeof(int));
+             chkAck(&ack,"Send FileSize");
 // read file data
-       printf("value of j %d\n",j);
+             printf("value of j %d\n",j);
 
-       readFileData(data,filename,j,sd);
-       printf("file written successfully\n");
+             readFileData(data,filename,j,sd);
+             printf("file written successfully\n");
 // read ack 
-       readn(sd,(char *)&ack,sizeof(int));
-       chkAck(&ack,"file upload");
-
+             readn(sd,(char *)&ack,sizeof(int));
+             chkAck(&ack,"file upload");
+             ve = true;
+             break;
+             
+           }
+               
+       }if (ve == false){
+       	  printf("\nInValid Entery\n");
+       	  }
+      
       mode = selFromMenu();
      break;
 
@@ -341,7 +360,7 @@ void dataBlocks(char data[],int *j,int sd)
    fchar = writen(sd,(char *)data,1000);
    readn(sd,(char *)&ack,sizeof(int));
    chkAck(&ack,"Write Block");
-   printf("fchar = %d\n",fchar);
+   //printf("fchar = %d\n",fchar);
    bzero(data,1000);
    *j-=1000;  
 }
