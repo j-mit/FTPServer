@@ -6,7 +6,7 @@
 #include <strings.h>
 #include <string.h>
 #include <libgen.h>
-#include<stdbool.h>
+#include <stdbool.h>
 
 //#define MAXSIZE 6000
 
