@@ -1,6 +1,6 @@
 all:
-	gcc -o s ftp_server.c -w
-	gcc -o c ftp_client.c -w
+	gcc -o s ftp_server.c -w -g
+	gcc -o c ftp_client.c -w -g
 	
 
 clean:

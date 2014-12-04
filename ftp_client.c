@@ -6,6 +6,7 @@
 #include <strings.h>
 #include <string.h>
 #include <libgen.h>
+#include<stdbool.h>
 
 //#define MAXSIZE 6000
 
@@ -72,7 +73,7 @@ void selMode(int sd)
    int j=0;
    char data[1000];
    int i=0;
-   boolean ve = false; 
+   bool ve = false; 
    char uname[100];
    char password[100];
    char valid[100];
