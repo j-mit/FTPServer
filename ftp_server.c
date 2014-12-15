@@ -93,7 +93,7 @@ void main(int argc,char *argv[])
 void selMode(int sd)
 {
    int ack=-1,rem=0,th=1000,fchar=0,count = 0;
-   char filename[100], newFile[100] = "/home/jaymit/ping/";
+   char filename[100], newFile[100] = "/home/shraddha/Desktop/shraddha/";
    char list[100];
    long j=0;
    char data[1000];
@@ -197,8 +197,13 @@ void selMode(int sd)
        printf("filename=%s\n",filename);
        ack = fchar;
        writen(sd,(char *)&ack,sizeof(ack));
+      
        readFileSize(&j,filename);
-
+	if (j == 0)
+	{
+		write(sd, "error",sizeof("error"));
+	}
+	else{
        printf("j=%d\n",j); 
        //write size to server and read ack
        fchar = writen(sd,(char *)&j,sizeof(int));
@@ -207,14 +212,15 @@ void selMode(int sd)
        //read file data
        readFileData(data,filename,j,sd);
        printf("file written successfully\n");   
-     break;
+       }
+	break;
 
      case 40:
        ack=mode;
        //write ack
        writen(sd,(char *)&ack,sizeof(ack));
        int index = 0;
-       dp = opendir("/home/jaymit/ping/");
+       dp = opendir("/home/shraddha/Desktop/shraddha/");
        if (dp)
        {
          while ((ep = readdir(dp)) != NULL)
@@ -247,16 +253,19 @@ void readFileSize(int *j,char *filename)
    FILE *ip;
    
    unsigned int tempData=0;   
-   char newFile[100] = "/home/jaymit/ping/";
+   char newFile[100] = "/home/shraddha/Desktop/shraddha/";
    strcat(newFile,filename);
    
    ip = fopen(newFile,"rb");
    
-   if(ip<0)
+   if(ip == NULL)
    {
      printf("file open failed\n");
-     exit(0);
+     //exit(0);
+     (*j) = 0;
+ 	return;
    }
+   else{
    while(1)
    { 
      tempData = fgetc(ip);     
@@ -264,7 +273,9 @@ void readFileSize(int *j,char *filename)
       break;
      (*j)+=1;
    }  
+   
    fseek(ip,0,SEEK_SET);  
+   }
 }
 
 void readFileData(char data[],char *filename,int j,int sd)
@@ -273,11 +284,11 @@ void readFileData(char data[],char *filename,int j,int sd)
    int k=0,ack=-1;
    unsigned int tempData=0; 
    int rem=0;  
-   char newFile[100] = "/home/jaymit/ping/";
+   char newFile[100] = "/home/shraddha/Desktop/shraddha/";
    strcat(newFile,filename);
    
    ip = fopen(newFile,"rb");
-   if(ip<0)
+   if(ip == NULL)
    {
      printf("file open failed\n");
      exit(0);

@@ -7,7 +7,6 @@
 #include <string.h>
 #include <libgen.h>
 #include <stdbool.h>
-
 //#define MAXSIZE 6000
 
 int readn(int,char *,int);
@@ -63,11 +62,12 @@ void main(int argc,char *argv[])
 void selMode(int sd)
 {
    int ack=-1,fchar=0,rem=0,th=1000;
-   char filename[100],dFile[100] = "/home/jaymit/Down/";
+   char filename[100],dFile[100] = "/home/shraddha/Desktop/207proj/";
    char directory[100];
    int count;
    char *file;
    char dirc[100];
+   char err[10];
    FILE *ip;
    FILE *op;
    int j=0;
@@ -125,7 +125,7 @@ void selMode(int sd)
        for(a = 0; a < 10; a++){
          if (strcmp (e, extensions[a]) == 0)
            {
-             printf("\nValid Entery\n");
+             printf("\nValid Entry\n");
              writen(sd,(char *)&dirc,sizeof(dirc));
        	     printf("file = %s\n",file);
 // read ack and read file size
@@ -165,56 +165,83 @@ void selMode(int sd)
 
        chkAck(&ack,"Write Mode");
        getFilename(filename);
-       writen(sd,(char *)filename,sizeof(filename));
-       printf("file = %s\n",filename);
+	//strcpy(dirc, filename);	
+	char *f = strrchr (filename, '.');
+       int b;
+       for(b = 0; b < 10; b++){
+         if (strcmp (f, extensions[b]) == 0)
+	{
+		printf("Valid Entry");
+		ve = true;       	
+		writen(sd,(char *)filename,sizeof(filename));
+        	printf("file = %s\n",filename);
        
-       readn(sd,(char *)&ack,sizeof(int));
-       chkAck(&ack,"Send Filename");
-       
-       readn(sd,(char *)&j,sizeof(int));
-       readn(sd,(char *)&ack,sizeof(int));
-       chkAck(&ack,"Get FileSize");
+       		readn(sd,(char *)&ack,sizeof(int));
+	       
+		chkAck(&ack,"Send Filename");
+       		
+		read(sd,(char *)&err, sizeof(err));
+		//printf("%s",err);
+       		if(strcmp(err,"error") == 0)
+		{
+			printf("File cannot be found\n");
+			break;		
+		}
+
+		readn(sd,(char *)&j,sizeof(int));
+       		readn(sd,(char *)&ack,sizeof(int));
+       		chkAck(&ack,"Get FileSize");
      
        
-       // open and write file
-       rem=j;
-       strcat(dFile,filename);
-       op=fopen(dFile,"wb");
-       while(rem>0)
-       {
-         if(rem>=1000)
-         {
-           fchar = read(sd,&data[0],1000);
-           writen(sd,(char *)&ack,sizeof(int));
-         }
-         else
-         {
-           fchar = read(sd,&data[0],rem);
-           writen(sd,(char *)&ack,sizeof(int)); 
-         }
-         //printf("fchar=%d rem=%d\n ",fchar,rem);
+       		// open and write file
+       		rem=j;
+       		strcat(dFile,filename);
+       		op=fopen(dFile,"wb");
+       		while(rem>0)
+       		{
+         		if(rem>=1000)
+         		{
+           			fchar = read(sd,&data[0],1000);
+           			writen(sd,(char *)&ack,sizeof(int));
+         		}
+         		else
+         		{
+           			fchar = read(sd,&data[0],rem);
+           			writen(sd,(char *)&ack,sizeof(int)); 
+         		}
+         		//printf("fchar=%d rem=%d\n ",fchar,rem);
          
-         j=fchar;
-         while(fchar>0)
-         { 
-           fputc(data[j-fchar],op);
-           //printf("0x%x ",data[j-fchar]);
-           data[j-fchar]=0;
-           fchar--;
-         }
-         rem-=1000;
-       }
+  	       		j=fchar;
+         		while(fchar>0)
+         		{ 
+           			fputc(data[j-fchar],op);
+           			//printf("0x%x ",data[j-fchar]);
+           			data[j-fchar]=0;
+           			fchar--;
+         		}
+         		rem-=1000;
+       		}
          
-       //printf("char 2=%i\n",fchar);
-       ack = fchar;
-       //printf("char 3=%i\n",ack);
-       printf("File recvd successfully\n");
-       writen(sd,(char *)&ack,sizeof(ack));
+       		//printf("char 2=%i\n",fchar);
+       		ack = fchar;
+       		//printf("char 3=%i\n",ack);
+       		printf("File recvd successfully\n");
+       		writen(sd,(char *)&ack,sizeof(ack));
 
-       fclose(op);
-       printf("here...\n");
-      //Download file from the server
-       mode = selFromMenu();//call this function at the end
+       		fclose(op);
+       		printf("here...\n");
+      		//Download file from the server
+		//ve = true;
+		break;
+		}
+	} 
+	if(ve == false)
+	{
+		printf("Invalid Entry\n");
+	}
+      	mode = selFromMenu();//call this function at the end
+ 
+	
      break;
 
      case 40:
